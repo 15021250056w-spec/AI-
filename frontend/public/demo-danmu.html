@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>弹幕墙模式</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #F5F7FA; padding: 50px 0; color: #1D2129; overflow-x: hidden; }
+    h2 { text-align: center; margin-bottom: 60px; }
+    
+    .marquee-wrapper {
+      position: relative;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 40px 0;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border-top: 1px solid #F0F2F5;
+      border-bottom: 1px solid #F0F2F5;
+    }
+    
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: scroll 40s linear infinite;
+    }
+    
+    /* Reverse direction for the middle row */
+    .marquee-track.reverse {
+      animation-direction: reverse;
+      animation-duration: 45s;
+    }
+    
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .tag-card {
+      background: #F8FAFC;
+      border: 1px solid #E5E6EB;
+      border-radius: 30px;
+      padding: 16px 32px;
+      margin: 0 12px;
+      font-size: 18px;
+      font-weight: 500;
+      color: #4E5969;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s;
+      cursor: default;
+      white-space: nowrap;
+    }
+    
+    .tag-card:hover {
+      background: #2B65EC;
+      color: white;
+      border-color: #2B65EC;
+      transform: scale(1.05);
+      box-shadow: 0 12px 24px rgba(43, 101, 236, 0.2);
+    }
+
+    .tag-icon { font-size: 20px; }
+
+    /* Gradient masks on left and right for smooth fade effect */
+    .mask {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 200px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .mask.left { left: 0; background: linear-gradient(to right, #FFFFFF, transparent); }
+    .mask.right { right: 0; background: linear-gradient(to left, #FFFFFF, transparent); }
+    
+  </style>
+</head>
+<body>
+  <h2>方案业务能力矩阵 (Demo 2: 弹幕/无缝滚动墙)</h2>
+  
+  <div class="marquee-wrapper">
+    <div class="mask left"></div>
+    <div class="mask right"></div>
+
+    <!-- Row 1 -->
+    <div class="marquee-track">
+      <!-- Original Set -->
+      <div class="tag-card"><span class="tag-icon">✨</span>机器翻译</div>
+      <div class="tag-card"><span class="tag-icon">📊</span>质量评估</div>
+      <div class="tag-card"><span class="tag-icon">🌐</span>多语言</div>
+      <div class="tag-card"><span class="tag-icon">✅</span>翻译质检</div>
+      <div class="tag-card"><span class="tag-icon">🖼️</span>图片翻译</div>
+      <div class="tag-card"><span class="tag-icon">📝</span>OCR文字识别</div>
+      <!-- Duplicated for seamless loop -->
+      <div class="tag-card"><span class="tag-icon">✨</span>机器翻译</div>
+      <div class="tag-card"><span class="tag-icon">📊</span>质量评估</div>
+      <div class="tag-card"><span class="tag-icon">🌐</span>多语言</div>
+      <div class="tag-card"><span class="tag-icon">✅</span>翻译质检</div>
+      <div class="tag-card"><span class="tag-icon">🖼️</span>图片翻译</div>
+      <div class="tag-card"><span class="tag-icon">📝</span>OCR文字识别</div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="marquee-track reverse">
+      <!-- Original Set -->
+      <div class="tag-card"><span class="tag-icon">🎬</span>短视频制作</div>
+      <div class="tag-card"><span class="tag-icon">🤖</span>AIGC</div>
+      <div class="tag-card"><span class="tag-icon">🎬</span>剧本转视频</div>
+      <div class="tag-card"><span class="tag-icon">📝</span>内容生成</div>
+      <div class="tag-card"><span class="tag-icon">💬</span>字幕生成</div>
+      <div class="tag-card"><span class="tag-icon">🎙️</span>AI配音</div>
+      <!-- Duplicated for seamless loop -->
+      <div class="tag-card"><span class="tag-icon">🎬</span>短视频制作</div>
+      <div class="tag-card"><span class="tag-icon">🤖</span>AIGC</div>
+      <div class="tag-card"><span class="tag-icon">🎬</span>剧本转视频</div>
+      <div class="tag-card"><span class="tag-icon">📝</span>内容生成</div>
+      <div class="tag-card"><span class="tag-icon">💬</span>字幕生成</div>
+      <div class="tag-card"><span class="tag-icon">🎙️</span>AI配音</div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="marquee-track">
+      <!-- Original Set -->
+      <div class="tag-card"><span class="tag-icon">🌍</span>视频本地化</div>
+      <div class="tag-card"><span class="tag-icon">📚</span>电子学习本地化</div>
+      <div class="tag-card"><span class="tag-icon">🎞️</span>多媒体处理</div>
+      <div class="tag-card"><span class="tag-icon">📦</span>一站式本地化</div>
+      <div class="tag-card"><span class="tag-icon">⚙️</span>定制化翻译</div>
+      <div class="tag-card"><span class="tag-icon">🗂️</span>术语库</div>
+      <div class="tag-card"><span class="tag-icon">🏢</span>企业级翻译</div>
+      <div class="tag-card"><span class="tag-icon">🎨</span>风格配置</div>
+      <!-- Duplicated for seamless loop -->
+      <div class="tag-card"><span class="tag-icon">🌍</span>视频本地化</div>
+      <div class="tag-card"><span class="tag-icon">📚</span>电子学习本地化</div>
+      <div class="tag-card"><span class="tag-icon">🎞️</span>多媒体处理</div>
+      <div class="tag-card"><span class="tag-icon">📦</span>一站式本地化</div>
+      <div class="tag-card"><span class="tag-icon">⚙️</span>定制化翻译</div>
+      <div class="tag-card"><span class="tag-icon">🗂️</span>术语库</div>
+      <div class="tag-card"><span class="tag-icon">🏢</span>企业级翻译</div>
+      <div class="tag-card"><span class="tag-icon">🎨</span>风格配置</div>
+    </div>
+  </div>
+</body>
+</html>

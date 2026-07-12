@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>核心8+收纳N 模式</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #F5F7FA; padding: 50px; color: #1D2129; }
+    h2 { text-align: center; margin-bottom: 40px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    /* Core Grid */
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+    .card { background: #FFFFFF; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); border: 1px solid #F0F2F5; transition: transform 0.3s; cursor: pointer; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(43, 101, 236, 0.08); }
+    .icon { width: 48px; height: 48px; background: #E8F0FE; border-radius: 50%; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center; color: #2B65EC; font-weight: bold; font-size: 20px;}
+    
+    /* Tags Area */
+    .tags-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding-top: 24px; border-top: 1px dashed #E5E6EB; }
+    .tag { padding: 6px 16px; background: white; border: 1px solid #E5E6EB; border-radius: 20px; font-size: 14px; color: #4E5969; transition: all 0.2s; cursor: default; }
+    .tag:hover { border-color: #2B65EC; color: #2B65EC; background: #E8F0FE; }
+    
+    .section-title { font-size: 14px; color: #86909C; text-align: center; margin-bottom: 16px; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>方案业务能力矩阵 (Demo 1: 核心8+拓展)</h2>
+    
+    <div class="grid">
+      <div class="card"><div class="icon">✨</div><div style="font-weight: 500;">机器翻译</div></div>
+      <div class="card"><div class="icon">📊</div><div style="font-weight: 500;">质量评估</div></div>
+      <div class="card"><div class="icon">🌐</div><div style="font-weight: 500;">多语言</div></div>
+      <div class="card"><div class="icon">✅</div><div style="font-weight: 500;">翻译质检</div></div>
+      <div class="card"><div class="icon">🖼️</div><div style="font-weight: 500;">图片翻译</div></div>
+      <div class="card"><div class="icon">📝</div><div style="font-weight: 500;">OCR文字识别</div></div>
+      <div class="card"><div class="icon">🎬</div><div style="font-weight: 500;">短视频制作</div></div>
+      <div class="card"><div class="icon">🤖</div><div style="font-weight: 500;">AIGC</div></div>
+    </div>
+
+    <div class="section-title">—— 更多场景延伸能力 ——</div>
+    
+    <div class="tags-container">
+      <div class="tag">剧本转视频</div>
+      <div class="tag">内容生成</div>
+      <div class="tag">字幕生成</div>
+      <div class="tag">AI配音</div>
+      <div class="tag">视频本地化</div>
+      <div class="tag">电子学习本地化</div>
+      <div class="tag">多媒体处理</div>
+      <div class="tag">一站式本地化</div>
+      <div class="tag">定制化翻译</div>
+      <div class="tag">术语库</div>
+      <div class="tag">企业级翻译</div>
+      <div class="tag">风格配置</div>
+    </div>
+  </div>
+</body>
+</html>
