@@ -1,5 +1,5 @@
 #!/bin/bash
-SERVER="root@47.251.25.149"
+SERVER="admin@47.251.25.149"
 REMOTE_DIR="/var/www/beyondesoft-ai-hub"
 PROJECT_NAME="AI Capability Hub"
 
@@ -19,4 +19,4 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "✅ 部署完成！访问 http://47.251.25.149:8081"
+echo "✅ 部署完成！访问 http://47.251.25.149:18789"

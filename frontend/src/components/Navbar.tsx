@@ -29,7 +29,7 @@ export default function Navbar() {
           onClick={() => navigate('/')}
         >
           <img 
-            src="/logo.png" 
+            src={`${import.meta.env.BASE_URL}logo.png`}
             alt="Beyondsoft Logo" 
             style={{ height: '32px', objectFit: 'contain' }} 
           />

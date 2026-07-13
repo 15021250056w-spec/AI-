@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { coreSolutions, mockCases } from '../mock/data';
-import { ChevronRight, ArrowLeft, Terminal, LayoutGrid, Crown, Layers, ExternalLink, AlertCircle, Tag, CheckCircle2, Clock, Map, Briefcase, Mail, CheckCircle, ArrowRight } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Terminal, LayoutGrid, Layers, ExternalLink, AlertCircle, Tag, CheckCircle2, Clock, Briefcase, Mail, CheckCircle, ArrowRight } from 'lucide-react';
 
 export default function SolutionDetail() {
   const { id } = useParams<{ id: string }>();

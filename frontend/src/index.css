@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 :root {
-  /* Colors */
+  /* Colors — brand deep blue #1E4696 + tech bright blue #2B65EC */
   --color-primary: #1E4696;
   --color-primary-light: #2B65EC;
   --color-primary-hover: #173673;
@@ -45,8 +45,8 @@
   --shadow-btn: 0 2px 4px rgba(43, 101, 236, 0.2);
   --shadow-glow: rgba(30, 70, 150, 0.08);
   
-  --radius-btn: 6px;
-  --radius-card: 12px;
+  --radius-btn: 4px;
+  --radius-card: 8px;
   
   /* Layout */
   --container-max-width: 1200px;
@@ -285,7 +285,7 @@ a:hover {
 
 .filter-select {
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid var(--color-border);
   background: white;
   color: var(--color-text-main);

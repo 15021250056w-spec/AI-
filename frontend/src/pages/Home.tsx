@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, CheckCircle2, Users, Building2, Search as SearchIcon, ArrowRight } from 'lucide-react';
+import { ChevronDown, CheckCircle2, Building2, Search as SearchIcon, ArrowRight } from 'lucide-react';
 import { coreSolutions as solutions } from '../mock/data';
 
 export default function Home() {
