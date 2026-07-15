@@ -1,137 +1,173 @@
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { solutions } from '../../data/solutions';
-import { cases } from '../../data/cases';
-import { getAllIndustries, getAllAssets } from '../../utils/assetFilter';
-import { TYPE_LABEL } from '../../data/labels';
-import Tag from '../../components/Tag';
-import type { AssetItem } from '../../utils/assetFilter';
+import { solutions } from '../../data/solutions.js';
+import { cases } from '../../data/cases.js';
+import { MATRIX_INDUSTRIES, SCENE_CATEGORIES } from '../../data/enums.js';
+import { openAssetDetail } from '../../utils/assetDetail.js';
+import { useLang } from '../../i18n/context';
 
 /* ================================================================
- * 资产矩阵 — 交叉概览页
+ * 类型
  * ================================================================ */
 
-interface CapabilityDomain {
-  name: string;
-  keyword: string;
-  assetIds: string[];
+interface AssetItem {
+  id: string; type: string; nameZh: string; nameEn: string; shortDesc?: string;
+  industry: string; sceneCategory: string; businessLabels: string[]; techLabels: string[];
+  deliveryForm?: string; maturity?: string; detail?: string; regionLang?: string;
+  solutionId?: string; solutionName?: string; client?: string; projectStatus?: string;
+  projectBg?: string; effectData?: string; bu: string; contactName: string; contactEmail: string; updateDate: string;
 }
 
-const CAPABILITY_DOMAINS: CapabilityDomain[] = [
-  { name: '翻译与本地化', keyword: '翻译', assetIds: ['sol-001', 'case-001', 'case-002', 'case-004', 'case-006'] },
-  { name: '内容生成', keyword: '内容生成', assetIds: ['case-003', 'case-005'] },
-  { name: 'AI基础设施与知识图谱', keyword: '知识图谱', assetIds: ['sol-002', 'sol-003', 'case-007', 'case-008', 'case-009'] },
-];
+type CellMap = Record<string, AssetItem[]>;
+type SolutionColorMap = Record<string, string>;
 
-const INDUSTRY_COLUMNS = getAllIndustries();
-const ASSET_MAP = new Map<string, AssetItem>();
-getAllAssets().forEach(a => ASSET_MAP.set(a.id, a));
+/* ================================================================
+ * 常量
+ * ================================================================ */
+
+const SOLUTION_COLORS = ['#165DFF','#0FC6C2','#FF7D00','#F53F3F','#722ED1','#14C9C9','#F7BA1E','#00B42A','#3491FA','#9FDB1D','#F5319D','#7B61FF'];
+const FALLBACK_COLOR = '#86909C';
+const MAX_VISIBLE_TAGS = 5;
+const NAME_MAX_LEN = 14;
+
+/* ================================================================
+ * 辅助
+ * ================================================================ */
+
+const matrixCases: AssetItem[] = (cases as AssetItem[]).filter(c => c.industry !== '通用/跨行业');
+const matrixSolutions: AssetItem[] = (solutions as AssetItem[]).filter(s => s.industry !== '通用/跨行业');
+
+function ck(scene: string, industry: string) { return `${scene}|${industry}`; }
+function buildCaseMap(): CellMap { const m: CellMap = {}; for (const c of matrixCases) { const k = ck(c.sceneCategory, c.industry); if (!m[k]) m[k] = []; m[k].push(c); } return m; }
+function buildSolutionMap(): CellMap { const m: CellMap = {}; for (const s of matrixSolutions) { const k = ck(s.sceneCategory, s.industry); if (!m[k]) m[k] = []; m[k].push(s); } return m; }
+function getLegendSolutions(): AssetItem[] { const ids = new Set(matrixCases.map(c => c.solutionId)); return (solutions as AssetItem[]).filter(s => ids.has(s.id)); }
+function buildSolutionColorMap(list: AssetItem[]): SolutionColorMap { const m: SolutionColorMap = {}; list.forEach((s, i) => { m[s.id] = i < SOLUTION_COLORS.length ? SOLUTION_COLORS[i] : FALLBACK_COLOR; }); return m; }
+function getLatestDate(): string { let d = ''; for (const s of solutions as AssetItem[]) { if (s.updateDate > d) d = s.updateDate; } for (const c of cases as AssetItem[]) { if (c.updateDate > d) d = c.updateDate; } return d; }
+function trunc(s: string, max: number) { return s.length > max ? s.slice(0, max) + '…' : s; }
+
+/* ================================================================
+ * 矩阵总览页
+ * ================================================================ */
 
 export default function Matrix() {
-  const navigate = useNavigate();
-  const totalAssets = solutions.length + cases.length;
+  const nav = useNavigate();
+  const { lang, dict, tEnum } = useLang();
+  const [mode, setMode] = useState<string>('case');
+  const [hl, setHl] = useState<string | null>(null);
 
-  const getCellAssets = (domain: CapabilityDomain, industry: string): AssetItem[] =>
-    domain.assetIds.map(id => ASSET_MAP.get(id)).filter((a): a is AssetItem => !!a && a.industryList.includes(industry));
+  const caseMap = useMemo(buildCaseMap, []);
+  const solMap = useMemo(buildSolutionMap, []);
+  const legend = useMemo(getLegendSolutions, []);
+  const colorMap = useMemo(() => buildSolutionColorMap(legend), [legend]);
+  const latest = useMemo(getLatestDate, []);
+  const sc = (solutions as AssetItem[]).length;
+  const cc = (cases as AssetItem[]).length;
 
-  const cellCardStyle: React.CSSProperties = {
-    padding: '7px 9px', borderRadius: '8px', border: '1px solid var(--color-border-light)',
-    background: '#FAFBFC', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+  const toggleHl = useCallback((id: string) => setHl(p => p === id ? null : id), []);
+  const tagClick = useCallback((e: React.MouseEvent, id: string) => { e.stopPropagation(); openAssetDetail(id); }, []);
+  const viewAll = useCallback((e: React.MouseEvent, ind: string, scn: string) => { e.stopPropagation(); nav(`/tool/browser?industry=${encodeURIComponent(ind)}&scene=${encodeURIComponent(scn)}`); }, [nav]);
+
+  const dInd = useMemo(() => MATRIX_INDUSTRIES.map(i => tEnum('INDUSTRIES', i)), [tEnum]);
+  const dScn = useMemo(() => SCENE_CATEGORIES.map(s => tEnum('SCENE_CATEGORIES', s)), [tEnum]);
+
+  function renderTags(items: AssetItem[], isCase: boolean) {
+    if (!items?.length) return null;
+    const vis = items.slice(0, MAX_VISIBLE_TAGS);
+    const rem = items.length - MAX_VISIBLE_TAGS;
+    const ind = items[0].industry;
+    const scn = items[0].sceneCategory;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {vis.map(a => {
+          if (isCase) {
+            const c = colorMap[a.solutionId || ''] || FALLBACK_COLOR;
+            const dim = hl !== null && hl !== a.solutionId;
+            const dn = lang === 'zh' ? a.nameZh : a.nameEn;
+            return (
+              <span key={a.id} onClick={e => tagClick(e, a.id)} title={lang === 'zh' ? `${a.nameZh} — ${a.solutionName || ''}` : `${a.nameEn} — ${a.solutionName || ''}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', fontSize: '12px', borderRadius: '4px', border: `1px solid ${c}`, background: `${c}14`, color: c, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'fit-content', opacity: dim ? 0.25 : 1 }}
+                onMouseEnter={e => { if (!dim) e.currentTarget.style.background = `${c}26`; }}
+                onMouseLeave={e => { if (!dim) e.currentTarget.style.background = `${c}14`; }}
+              ><span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: c, flexShrink: 0 }} />{trunc(dn, NAME_MAX_LEN)}</span>
+            );
+          } else {
+            const c = colorMap[a.id] || FALLBACK_COLOR;
+            const dn = lang === 'zh' ? a.nameZh : a.nameEn;
+            return (
+              <span key={a.id} onClick={e => tagClick(e, a.id)} title={lang === 'zh' ? a.nameZh : a.nameEn}
+                style={{ display: 'inline-block', padding: '3px 10px', fontSize: '12px', borderRadius: '4px', border: `1px solid ${c}`, background: `${c}0D`, color: '#1D2129', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'fit-content' }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${c}1A`; }}
+                onMouseLeave={e => { e.currentTarget.style.background = `${c}0D`; }}
+              >{trunc(dn, NAME_MAX_LEN)}</span>
+            );
+          }
+        })}
+        {rem > 0 && <span onClick={e => viewAll(e, ind, scn)} style={{ fontSize: '11px', color: '#165DFF', cursor: 'pointer', padding: '2px 0', fontWeight: 500 }}>{dict.viewAll(items.length)}</span>}
+      </div>
+    );
+  }
+
+  const isCase = mode === 'case';
+  const thS: React.CSSProperties = { padding: '8px 14px', background: '#F7F8FA', borderBottom: '1px solid #E5E6EB', borderRight: '1px solid #E5E6EB', color: '#86909C', fontWeight: 500, fontSize: '12px', textAlign: 'left', position: 'sticky', left: 0, zIndex: 2 };
+  const colS: React.CSSProperties = { padding: '8px 8px', background: '#F7F8FA', borderBottom: '1px solid #E5E6EB', borderRight: '1px solid #E5E6EB', color: '#1D2129', fontWeight: 600, fontSize: '12px', textAlign: 'center', whiteSpace: 'nowrap', minWidth: '150px' };
+  const rowS: React.CSSProperties = { padding: '8px 14px', background: '#F7F8FA', borderBottom: '1px solid #E5E6EB', borderRight: '1px solid #E5E6EB', fontWeight: 600, color: '#1D2129', fontSize: '13px', verticalAlign: 'top', position: 'sticky', left: 0, zIndex: 1 };
+
+  // 模式滑块指示
+  const sliderStyle: React.CSSProperties = {
+    position: 'absolute', top: '3px', width: 'calc(50% - 3px)', height: 'calc(100% - 6px)',
+    borderRadius: '4px', background: '#fff', transition: 'left 200ms ease',
+    left: isCase ? '3px' : '50%',
   };
 
   return (
-    <div style={{ maxWidth: 'var(--container-max-width)', margin: '0 auto', padding: '28px 20px 40px' }}>
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '6px', color: 'var(--color-primary)', fontWeight: 700 }}>AI能力资产概览矩阵</h1>
-        <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
-          覆盖 {solutions.length} 大解决方案、{cases.length} 项落地资产、跨 {INDUSTRY_COLUMNS.length} 个核心行业
-          <span style={{ margin: '0 12px', color: 'var(--color-border)' }}>|</span> 更新于 2026-07-10
-        </p>
-        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '8px' }}>
-          点击单元格资产可跳转详情页，点击行列标题可跳转浏览器 ← 表格可横向滚动 →
-        </p>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '32px 20px 48px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#1D2129', margin: '0 0 8px 0', lineHeight: 1.5 }}>{dict.matrixTitle}</h1>
+        <p style={{ fontSize: '14px', color: '#86909C', margin: 0, lineHeight: 1.5 }}>{dict.matrixSubtitle(sc, cc, latest)}</p>
       </div>
 
-      {/* 横向滚动容器 + 右侧渐变遮罩提示 */}
-      <div style={{ position: 'relative' }}>
-        <div style={{
-          overflowX: 'auto', border: '1px solid var(--color-border)', borderRadius: '8px',
-          background: 'var(--color-bg-card)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: INDUSTRY_COLUMNS.length * 170 + 160 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', gap: '24px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', display: 'inline-flex', borderRadius: '5px', background: '#F0F2F5', padding: '3px', minWidth: '200px' }}>
+          <div style={sliderStyle} />
+          <button onClick={() => { setMode('case'); setHl(null); }} style={{ position: 'relative', zIndex: 1, flex: 1, padding: '6px 16px', fontSize: '13px', fontWeight: isCase ? 600 : 400, borderRadius: '4px', border: 'none', background: 'transparent', color: isCase ? '#165DFF' : '#4E5969', cursor: 'pointer', transition: 'color 200ms' }}>{dict.modeCase}</button>
+          <button onClick={() => { setMode('solution'); setHl(null); }} style={{ position: 'relative', zIndex: 1, flex: 1, padding: '6px 16px', fontSize: '13px', fontWeight: !isCase ? 600 : 400, borderRadius: '4px', border: 'none', background: 'transparent', color: !isCase ? '#165DFF' : '#4E5969', cursor: 'pointer', transition: 'color 200ms' }}>{dict.modeSolution}</button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '12px', lineHeight: 1.5 }}>
+          {isCase ? (legend.length > 0 ? legend.map(s => {
+            const c = colorMap[s.id] || FALLBACK_COLOR; const a = hl === s.id;
+            return <span key={s.id} onClick={() => toggleHl(s.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', border: a ? `1px solid ${c}` : '1px solid transparent', background: a ? `${c}14` : 'transparent', cursor: 'pointer', fontWeight: a ? 600 : 400, color: a ? c : '#4E5969', userSelect: 'none' }}
+              onMouseEnter={e => { if (!a) e.currentTarget.style.background = '#F0F2F5'; }} onMouseLeave={e => { if (!a) e.currentTarget.style.background = 'transparent'; }}
+            ><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: c, flexShrink: 0 }} />{s.nameZh}</span>;
+          }) : <span style={{ color: '#86909C' }}>{dict.legendNoData}</span>) : <span style={{ color: '#86909C' }}>{dict.legendSolutionHint}</span>}
+        </div>
+      </div>
+
+      <div style={{ border: '1px solid #E5E6EB', borderRadius: '4px', overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: MATRIX_INDUSTRIES.length * 150 + 160, borderCollapse: 'collapse', fontSize: '13px', lineHeight: 1.5 }}>
             <thead>
               <tr>
-                <th style={{ width: '160px', padding: '12px 16px', background: '#F8F9FB', borderBottom: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border-light)', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '12px', textAlign: 'left', position: 'sticky', left: 0, zIndex: 1 }}>
-                  能力域 ＼ 目标行业
-                </th>
-                {INDUSTRY_COLUMNS.map(ind => (
-                  <th key={ind} onClick={() => navigate(`/tool/browser?industry=${encodeURIComponent(ind)}`)}
-                    style={{ padding: '10px 12px', background: '#F8F9FB', borderBottom: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border-light)', color: 'var(--color-primary-light)', fontWeight: 600, fontSize: '12px', textAlign: 'center', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    title={`点击查看「${ind}」全部资产`}
-                  >{ind}</th>
+                <th style={{ ...thS, width: '160px' }}>{dict.matrixCorner}</th>
+                {MATRIX_INDUSTRIES.map((ind, i) => (
+                  <th key={ind} style={colS} title={dInd[i]}>{dInd[i]}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {CAPABILITY_DOMAINS.map(domain => (
-                <tr key={domain.name}>
-                  <td onClick={() => navigate(`/tool/browser?keyword=${encodeURIComponent(domain.keyword)}`)}
-                    style={{ padding: '12px 16px', background: '#F8F9FB', borderBottom: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border-light)', fontWeight: 600, color: 'var(--color-text-main)', fontSize: '13px', verticalAlign: 'top', cursor: 'pointer', position: 'sticky', left: 0, zIndex: 1 }}
-                    title={`在浏览器中搜索「${domain.keyword}」`}
-                  >
-                    {domain.name}
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 400, marginTop: '4px' }}>{domain.assetIds.length} 项资产</div>
-                  </td>
-                  {INDUSTRY_COLUMNS.map(ind => {
-                    const cellAssets = getCellAssets(domain, ind);
-                    return (
-                      <td key={ind} style={{ padding: cellAssets.length ? '8px' : '14px 8px', borderBottom: '1px solid var(--color-border-light)', borderRight: '1px solid var(--color-border-light)', verticalAlign: 'top', textAlign: cellAssets.length ? 'left' : 'center' }}>
-                        {cellAssets.length === 0 ? (
-                          <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>—</span>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                            {cellAssets.map(asset => (
-                              <div key={asset.id}
-                                onClick={() => navigate(asset.type === 'solution' ? `/tool/solution/${asset.id}` : `/tool/case/${asset.id}`)}
-                                style={cellCardStyle}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#EDF0F5'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = '#FAFBFC'; }}
-                              >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
-                                  <Tag variant={asset.type} size="small">{TYPE_LABEL[asset.type]}</Tag>
-                                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-main)' }}>
-                                    {asset.nameZh.length > 12 ? asset.nameZh.slice(0, 12) + '…' : asset.nameZh}
-                                  </span>
-                                </div>
-                                <div style={{ fontSize: '10px', color: 'var(--color-text-muted)', lineHeight: 1.3 }}>
-                                  {asset.shortDesc.length > 24 ? asset.shortDesc.slice(0, 24) + '…' : asset.shortDesc}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    );
+              {SCENE_CATEGORIES.map((scene, si) => (
+                <tr key={scene}>
+                  <td style={rowS} title={dScn[si]}>{dScn[si]}</td>
+                  {MATRIX_INDUSTRIES.map(ind => {
+                    const k = ck(scene, ind);
+                    const items = isCase ? (caseMap[k] || []) : (solMap[k] || []);
+                    return <td key={ind} style={{ padding: items.length > 0 ? '8px' : '12px 8px', borderBottom: '1px solid #E5E6EB', borderRight: '1px solid #E5E6EB', verticalAlign: 'top', background: '#fff' }}>{renderTags(items, isCase)}</td>;
                   })}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {/* 右侧渐变遮罩 — 提示可横向滚动 */}
-        <div style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: '48px',
-          background: 'linear-gradient(to left, rgba(245,247,250,0.6), transparent)',
-          pointerEvents: 'none', borderRadius: '0 8px 8px 0',
-        }} />
-      </div>
-
-      <div style={{ marginTop: '12px', padding: '10px 16px', borderRadius: '8px', background: '#F8F9FB', border: '1px solid var(--color-border-light)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-        <span>💡</span>
-        <span>
-          矩阵展示 {CAPABILITY_DOMAINS.length} 个能力域 × {INDUSTRY_COLUMNS.length} 个核心行业的资产分布概览。
-          查看全量 {totalAssets} 项资产与多维筛选，请前往
-          <span onClick={() => navigate('/tool/browser')} style={{ color: 'var(--color-primary-light)', fontWeight: 500, cursor: 'pointer', margin: '0 4px' }}>资产浏览器</span>
-        </span>
       </div>
     </div>
   );

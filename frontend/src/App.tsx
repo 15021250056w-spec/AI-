@@ -6,11 +6,10 @@ import List from './pages/List';
 import Detail from './pages/Detail';
 import SolutionDetail from './pages/SolutionDetail';
 import Capabilities from './pages/Capabilities';
+import { LangProvider } from './i18n/context';
 import ToolLayout from './pages/tool/ToolLayout';
 import Matrix from './pages/tool/Matrix';
 import Browser from './pages/tool/Browser';
-import ToolSolutionDetail from './pages/tool/SolutionDetail';
-import ToolCaseDetail from './pages/tool/CaseDetail';
 import './index.css';
 
 function App() {
@@ -18,12 +17,14 @@ function App() {
     <Router>
       <Routes>
         {/* Tool routes — standalone layout (no main Navbar/Footer) */}
-        <Route path="/tool" element={<ToolLayout />}>
+        <Route path="/tool" element={
+          <LangProvider>
+            <ToolLayout />
+          </LangProvider>
+        }>
           <Route index element={<Navigate to="/tool/matrix" replace />} />
           <Route path="matrix" element={<Matrix />} />
           <Route path="browser" element={<Browser />} />
-          <Route path="solution/:id" element={<ToolSolutionDetail />} />
-          <Route path="case/:id" element={<ToolCaseDetail />} />
         </Route>
 
         {/* Main site routes */}
